@@ -21,6 +21,7 @@
             <?php wp_nav_menu(array(
                 'theme_location' => 'header_menu',
             )) ?>
+            <button class="btnCart"><i class="fas fa-cart-shopping"></i><span class="count"></span></button>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@
 
 
 <?php get_header();?>
-
+<?php $category = get_field('category') ?>
 <?php  if(have_posts()) ?>
 <section class="single__header text--center py--2">
       <div class="wrapper">
@@ -18,23 +18,24 @@
 <section class="list">
       <div class="container">
         <div class="list__grid">
-        <?php $chickenjoy = new WP_Query(array(
+        <?php $menu = new WP_Query(array(
                 'post_type' => 'foods',
                 'meta_query' => array(
                     array(
                         'key' => 'category',
-                        'value' => 'Chicken Joy',
+                        'value' => $category,
                         'compare' => 'LIKE',
                     )
                 )
 
           ))?>
           
-          <?php if($chickenjoy->have_posts()) : while($chickenjoy->have_posts()) : $chickenjoy->the_post(); ?>
+          
+          <?php if($menu->have_posts()) : while($menu->have_posts()) : $menu->the_post(); ?>
           
           <div class="card">
             <div class="card__wrapper">
-              <img src="<?php echo get_field('image') ?>" alt="" />
+              <img src="<?php echo get_field('image'); ?>" alt="" />
 
               <div class="grid bg--accent clr--light p--2">
                 <div class="card__content">
@@ -52,7 +53,7 @@
                 <div class="card__price">
                   <p>
                     Start at <br />
-                    <span>850</span>
+                    <span><?php the_field('price'); ?></span>
                   </p>
                 </div>
               </div>
