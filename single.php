@@ -26,13 +26,15 @@
 
             <?php the_field('description') ?>
 
-            <h3>Options</h3>
-            <form action="">
-              <ul class="flex">
-                <li><input type="radio" name="option" /> Solo</li>
-                <li><input type="radio" name="option" /> With Drinks</li>
+            <h3>Options</h3>   
+              <ul>
+                  <?php
+                    $options =  get_field('addons') ?>
+                        
+                    <?php foreach( $options as $option): ?>
+                        <li><input type="checkbox" /> <?php echo $option; ?></li>
+                    <?php endforeach; ?>
               </ul>
-            </form>
 
             <div class="action">
               <h2>PHP <?php the_field('price')?>.00</h2>
