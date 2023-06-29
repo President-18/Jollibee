@@ -1,15 +1,24 @@
 <?php get_header(); ?>
 
-<section class="cta">
-    <div class="container">
-        <div class="cta__wrapper">
-            <h3>Have a question?</h3>
-            <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quae officia eligendi corrupti. 
-            Eveniet omnis eligendi fugiat quibusdam delectus hic fugit?</p>
-            <button id="btnModal">Contact</button>
-        </div>
-    </div>
+
+<?php if(have_posts()) : while (have_posts()) : the_post() ?>
+
+<section class="page__hero">
+    <h1><?php the_title() ?></h1>
 </section>
+<div class="full__width">
+    <div class="container">
+        <?php the_content(); ?>
+    </div>
+</div>
+
+<?php
+    endwhile;
+        else:
+            echo "no more post";
+        endif;
+?>
+
 
 <div class="modal">
     <div class="backdrop"></div>
