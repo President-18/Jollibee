@@ -59,4 +59,286 @@ Connect JS/CSS
 
 
 Call your style/scripts using php functions
- 
+
+1. On functions.php type:
+
+    <?php
+
+function jollibee_assets(){
+    // wp_enqueue_style -> load your css assets
+    wp_enqueue_style('jollibee-style', get_template_directory_uri() . "./css/style.css", microtime());
+    wp_enqueue_style('jollibee-icons', "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css", 1.0);
+    wp_enqueue_style('jollibee-slider-style', "https://cdnjs.cloudflare.com/ajax/libs/tiny-slider/2.9.4/tiny-slider.css", 1.0);
+
+    // wp_enqueue_script -> load your js assets
+    wp_enqueue_script('jollibee-slider-js', 'https://cdnjs.cloudflare.com/ajax/libs/tiny-slider/2.9.4/min/tiny-slider.js', 1.0 , [], true);
+    wp_enqueue_script('jollibee-script', get_template_directory_uri() . "./script/script.js", microtime(), [], true);
+    
+
+    // conditional loading of assets based on the current page
+    if(is_front_page()){
+        wp_enqueue_script('jollibee-slider', get_template_directory_uri() . "./script/slider.js", microtime(), [], true);
+    }
+}
+
+//Hook that will run this function
+add_action('wp_enqueue_scripts', 'jollibee_assets');
+
+NOTE: If CSS/JS is not loaded, press CTRL + F5 and check if wp_head() and wp_footer() are included on header.php/footer.php
+
+How to Output Post List Template
+
+1. Open home.php > add get_header() and get_footer()
+2. Create a WordPress query between the above functions
+
+    <?php if(have_posts()) : while(have_posts()) : the_post(); ?>
+        // INSERT HTML TEMPLATE
+    <?php endwhile;
+        else:
+            echo "No more post";
+        endif
+    ?>
+
+    Functions to view post information
+        1. the_title() -> output the post the_title
+        2. the_content() -> output the post body
+        3. the_permalink() -> output the url
+        4. the_excerpt() -> output the post excerpt
+        5. echo get_the_date('M j, Y') -> output the post database
+        6. echo get_the_category($id)[0]->name -> output the post category(array)
+        7. echo wp_trim_words(get_the_content(), 40) -> limit the number of words for the excerpt or the content
+        8. echo get_the_author_meta('first_name') -> get the author 
+
+How to Add Theme Supports
+    1. Open functions.php
+
+        <?php
+            function blog_support(){
+                add_theme_support('post-thumbnails'); // Add Featured Image
+                add_theme_support('menus'); // Add Menus
+                add_theme_support('title'); // Add Page Title
+                add_theme_support('custom-logo'); // Add Custom Logo
+
+                
+                add_image_size('banner-sm', 220, 150, true); // Create custom post thumbnail size
+
+                register_nav_menus(
+                    array(
+                        'header_menu' => __('Header Menu', 'text_domain'); // Create a Nav Locations
+                        'footer_menu' => __('Footer Menu', 'text_domain'); // Create a Nav Locations
+                        )
+                    );
+            }
+
+            add_action('after_setup_theme', 'blog_support');
+
+        How to use theme support on a template;
+
+        1. post-thumbnails
+            <?php if(has_post_thumbnail()){
+                the_post_thumbnail('banner-sm')
+            }
+
+        2. Menus -> Go to Appearance -> Menus
+        3. title -> go to header.php > add <title><is_front_page ? blogInfo('title) : wp_title() ></title>
+        4. custom Logo -> go to header.php > replace static logo with
+             <?php if ( function_exists( 'the_custom_logo' ) ) {
+                    the_custom_logo();
+                }?>
+                4.1 on the top nav bar > customize > site identity > click select logo
+                4.2 on the top nav bar > customize > site identity > click select icon -> add favicon
+        
+        5. add_image_size -> this is inserted as parameter of the_post_thumbnail('ADD_IMAGE_SIZE_TITLE') see line 139 for reference
+        6. register_nav_menu -> go to appearance > menu > create menu > manage menu location
+
+
+How to Add Nav Menus
+
+1. Go to header.php > replace static nav with 
+    <?php wp_nav_menu(array(
+                'theme_location' => 'header_menu',
+            )) ?>
+
+
+How to create single post template
+
+1. Go to single.php 
+     <?php if(have_posts()) : while(have_posts()) : the_post(); ?>
+        // INSERT HTML TEMPLATE
+        <?php endwhile;
+            else:
+                echo "No more post";
+            endif;
+        ?>
+
+Create Custom Query
+
+1. Create variable that will hold the arguments use on the query
+
+    $args = WP_Query(array(
+        'post_type' => 'post' // This can be 'post', 'page', 'custom post type'
+        'posts_per_page' => 3 // Limit of post to be showed. -1 to show all post
+    ))
+
+
+    <?php if($args->have_posts()) : while($args->have_posts()) : $args->the_post(); ?>
+        // INSERT HTML TEMPLATE
+        <?php endwhile;
+            else:
+                echo "No more post";
+            endif;
+            wp_reset_post_data // ensure that the query is properly reset
+        ?>
+Type of query
+    1. 'tax_query' => array( // use to filter taxonomy (category or tags)
+            array( 
+                'taxonomy' => 'category',
+                'field' => 'slug', //name or slug
+                'terms' => 'card-lg-banner',
+            ));
+
+    2. 'date_query' => array( // use to filter by dates
+            array(
+                'after' => 'June 22,2023,
+                'before' => 'June 25,2023',
+                'inclusive' => true,
+        ));
+
+    3. 'meta_query' => array( // use to filter custom fields
+            array(
+                'key' => 'feat-size'
+                'value' => 'feat-lg'
+                'compare' => 'LIKE',
+    ));
+
+Create Custom Post Type
+
+1. Open functions.php
+
+<?php
+function jollibee_custom_post(){
+    $foods_label = array(
+        'name'          => __('Foods', 'textdomain'),
+        'singular_name' => __('Foods', 'textdomain'),
+        'add_new'       => __('Add Foods', 'textdomain'),
+        'edit_item'     => __('Edit Foods', 'textdomain'),
+        'add_new_item'  => __('Add New Foods', 'textdomain'),
+        'all_items'     => __('Foods', 'textdomain'),
+    );
+
+    $foods_args = array(
+        'labels' => $foods_label,
+        'public' => true,
+        'capability_type' => 'post',
+        'show_ui' => true,
+        'supports' => array('title', 'editor', 'thumbnail', 'custom-fields', 'excerpt')
+    );
+
+    register_post_type('foods', $foods_args);
+
+
+}
+
+
+add_action ('init', 'jollibee_custom_post');
+
+New post type should appear on the side menu
+
+NOTE: Sometimes custom post data are not showing on your template. 
+If this happened, go to settings > permalinks > select Plain then save. 
+After saving, select Post Name then save. 
+This will reset the permalinks of all your post.
+
+
+How to install plugin
+
+1. Go to Plugins > Add New > Search Plugins 
+2. Install then activate
+
+    Common plugins to Use
+        1.contact form 7 -> create a contact form
+        2. smush -> use to upload webp and optimize add_image_size
+        3. ACF - Advance Custom Field -> use to add custom fields on your post
+
+Download WordPress Plugin Zip file
+1. Go to Plugins > Add New > Upload Plugins.
+2. Browse your system file then select and open your plugin zip file
+3. Install then activate 
+
+Create Custom Block
+NOTE: ACF PRO Version should be installed
+
+1. Register new block.
+    1.1 Go to function.php type
+    <?php 
+        function jollibee_register_blocks() {
+            if ( function_exists( 'acf_register_block' ) ) {
+                
+            acf_register_block( array(
+                    'name'          => 'two-columns',
+                    'title'         => __( 'Two Columns'),
+                    'render_template'   => 'blocks/two-cols.php',
+                    'category'      => 'jollibee-blocks',
+                    'icon'          => 'format-image',
+                    'mode'          => 'edit',
+                    'keywords'      => array( 'grid', 'columns')
+            ));
+            acf_register_block( array(
+                'name'          => 'menu-slider',
+                'title'         => __( 'Menu Slider'),
+                'render_template'   => 'blocks/menu-slider.php',
+                'category'      => 'jollibee-blocks',
+                'icon'          => 'slides',
+                'mode'          => 'edit',
+                'keywords'      => array( 'slider', 'menu')
+        ));
+
+            } 
+        } 
+
+        add_action('acf/init', 'jollibee_register_blocks' );
+
+The code above will register a new block that will appear on the list of custom blocks in ACF
+
+    1.2 Create a Block template, name it identical with the render_template
+
+2. Open two-cols.php
+
+<?php
+    //Create custom field that will be used inside the template
+
+    $header = get_field('header');
+    $body = get_field('body');
+    $image = get_field('image');
+    $orientation = get_field('orientation');
+
+
+?>
+
+    //HTML template of the block. This will be the return HTML code of this block.
+    All custom field should be echoed inside the template
+
+<section class="two__cols <?php  echo $orientation ?>">
+    <div class="container">
+        <div class="two__cols__grid">
+            <div class="col__1">
+                <img src="<?php echo $image ?>" alt="">
+            </div>
+            <div class="col__2">
+                <h3><?php echo $header?></h3>
+                <?php echo $body?>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+3. Create custom field on ACF
+
+    3.1 Add new fields group and create fields. The name of the template used should be identical with the name of the custom field.
+    3.2 Under setting. Rules: 
+                Show this field group if = Block
+                Select the Registered Block on the third Dropdown Menu
+    3.3 Click Save 
+
+4. Go to post > add Block > Select the New Created Block > Complete all Required Fields
